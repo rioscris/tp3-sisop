@@ -41,7 +41,7 @@ int searchInFile();
 void handleInputs(char*, char*, char*);
 void createDemon(pid_t*, pid_t*, pid_t*);
 void createFifos(char*, char*, mode_t);
-
+void logInit();
 void mostrarAyuda();
 
 int main(int argc, char** argv){
@@ -60,6 +60,9 @@ int main(int argc, char** argv){
             case 'p':            
                 strcpy(pathToFile, optarg);
                 break;
+	    default:
+		fprintf(stdout, "Se necesita especificar un parametro -h o -p <path>...\n");
+		abort();		
         }
     fprintf(stdout, "Iniciando demonio para el archivo '%s'...\n", pathToFile);
     createDemon(&p_id, &c_id, &s_id);
@@ -107,14 +110,24 @@ void createDemon(pid_t* p_id, pid_t* c_id, pid_t* s_id){
     close(STDERR_FILENO);
 }
 
+void logInit(){
+	FILE* fAux = fopen("/tmp/initLog", "w");
+	char initLogMsg[] = "Successful init of Daemon...\n";
+        fwrite(initLogMsg, sizeof(initLogMsg), 1, fAux);
+	fclose(fAux);
+}
+
 void handleInputs(char* pathFifoIn, char* pathFifoOut, char* pathToData){
-    char* filtro;
+    char filtro[MAX_FILTER_LENGTH];
+    logInit();
     int queryFD = open(pathFifoIn, O_RDWR);
     int resultFD = open(pathFifoOut, O_WRONLY);
+
     while(read(queryFD, filtro, MAX_FILTER_LENGTH)>0){
-        if(searchInFile(filtro, &resultFD, pathToData) != 0)
+	if(searchInFile(filtro, &resultFD, pathToData) != 0)
             break;
     }
+
     close(queryFD);
     close(resultFD);
 }
@@ -165,7 +178,7 @@ void populateArticulo(t_Articulo* pArticulo, char* line){
 void mostrarArticulo(t_Articulo* pArticulo, int* fdWrite){
     char* result;
     sprintf(result, "%d\t%s\t%s\t%s", pArticulo->item_id, pArticulo->articulo, pArticulo->producto, pArticulo->marca);
-    write(*fdWrite, result, STR_LEN);
+    write(*fdWrite, result, strlen(result));
 }
 
 void splitFilter(char* filter, char* filterItem, char* value){
