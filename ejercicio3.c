@@ -12,7 +12,7 @@
 #define ARTICULO_LEN 200
 #define PRODUCTO_LEN 80
 #define MARCA_LEN 80
-#define FILENAME "articulos.txt"
+#define DEFAULT_DATAFILE "articulos.txt"
 #define FIFO_IN_FILENAME "/tmp/articulosQueryFifo"
 #define FIFO_OUT_FILENAME "/tmp/articulosResultFifo"
 #define OPEN_MODE "r"
@@ -39,7 +39,7 @@ void mostrarEncabezados();
 int cumpleFiltro(t_Articulo*, char*, char*);
 void splitFilter(char*, char*, char*);
 int searchInFile();
-void handleInputs(char*, char*);
+void handleInputs(char*, char*, char*);
 void createDemon(pid_t*, pid_t*, pid_t*);
 void createFifos(char*, char*, mode_t);
 
@@ -63,9 +63,9 @@ int main(int argc, char** argv){
                 break;
         }
     fprintf(stdout, "Iniciando demonio para el archivo '%s'...\n", pathToFile);
-    // createDemon(&p_id, &c_id, &s_id);
-    // createFifos(FIFO_IN_FILENAME, FIFO_OUT_FILENAME, FIFO_PERMISSIONS);
-    // handleInputs(FIFO_IN_FILENAME, FIFO_OUT_FILENAME);
+    createDemon(&p_id, &c_id, &s_id);
+    createFifos(FIFO_IN_FILENAME, FIFO_OUT_FILENAME, FIFO_PERMISSIONS);
+    handleInputs(FIFO_IN_FILENAME, FIFO_OUT_FILENAME, pathToFile);
     return 0;
 }
 
@@ -86,7 +86,7 @@ void createDemon(pid_t* p_id, pid_t* c_id, pid_t* s_id){
         exit(ON_FORK_ERROR);
     }
     if(*p_id > 0){
-        fprintf(stdout, "Proceso padre creado y finalizado exitosamente!\n");
+        fprintf(stdout, "Proceso padre finalizado exitosamente!\n");
         exit(TERMINATE_PARENT_PROCESS);
     }
 
@@ -100,23 +100,27 @@ void createDemon(pid_t* p_id, pid_t* c_id, pid_t* s_id){
         exit(ON_SESSION_ERROR);
     }
 
+    fprintf(stdout, "Proceso hijo creado exitosamente. PID: %d\n", getpid());
+
     chdir("/");
     close(STDIN_FILENO);
     close(STDOUT_FILENO);
     close(STDERR_FILENO);
 }
 
-void handleInputs(char* pathFifoIn, char* pathFifoOut){
+void handleInputs(char* pathFifoIn, char* pathFifoOut, char* pathToData){
     char* filtro;
     int queryFD = open(pathFifoIn, O_RDWR);
     int resultFD = open(pathFifoOut, O_WRONLY);
     while(read(queryFD, filtro, MAX_FILTER_LENGTH)>0){
-        if(searchInFile(filtro, &resultFD) != 0)
+        if(searchInFile(filtro, &resultFD, pathToData) != 0)
             break;
     }
+    close(queryFD);
+    close(resultFD);
 }
 
-int searchInFile(char* filtro, int* fdWrite){
+int searchInFile(char* filtro, int* fdWrite, char* pathToData){
     FILE *fp = NULL;
     char line[STR_LEN];
     t_Articulo articulo;
@@ -127,7 +131,7 @@ int searchInFile(char* filtro, int* fdWrite){
     splitFilter(filtro, filterItem, filterValue);
 
     // Apertura del archivo de articulos
-    fp = fopen(FILENAME, OPEN_MODE);
+    fp = fopen(pathToData, OPEN_MODE);
     if(!fp)
         return ON_OPEN_FILE_ERROR;
     rewind(fp);
