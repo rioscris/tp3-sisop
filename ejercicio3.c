@@ -5,20 +5,26 @@
 #include <sys/stat.h>
 #include <string.h>
 #include <errno.h>
+#include <fcntl.h>
 
+#define PATH_LEN 150
 #define STR_LEN 300
 #define ARTICULO_LEN 200
 #define PRODUCTO_LEN 80
 #define MARCA_LEN 80
 #define FILENAME "articulos.txt"
+#define FIFO_IN_FILENAME "/tmp/articulosQueryFifo"
+#define FIFO_OUT_FILENAME "/tmp/articulosResultFifo"
 #define OPEN_MODE "r"
 #define ON_FILE_OPENING_ERROR_MSG "Error en apertura de archivo"
+#define MAX_FILTER_LENGTH 220
 #define MAX_HEADER_LEN 20
 #define MAX_FILTER_VALUE_LEN 200
 #define FIFO_PERMISSIONS 0666
 #define ON_FORK_ERROR 1
 #define TERMINATE_PARENT_PROCESS 0
 #define ON_SESSION_ERROR 2
+#define ON_OPEN_FILE_ERROR -1
 typedef struct
 {
     int item_id;
@@ -28,28 +34,48 @@ typedef struct
 }t_Articulo;
 
 void populateArticulo(t_Articulo*, char*);
-void mostrarArticulo(t_Articulo*);
+void mostrarArticulo(t_Articulo*, int*);
 void mostrarEncabezados();
 int cumpleFiltro(t_Articulo*, char*, char*);
 void splitFilter(char*, char*, char*);
-int fileHandler();
-void handleInputs();
+int searchInFile();
+void handleInputs(char*, char*);
 void createDemon(pid_t*, pid_t*, pid_t*);
-void createFifo(char*);
+void createFifos(char*, char*, mode_t);
 
-int main(){
+void mostrarAyuda();
+
+int main(int argc, char** argv){
     pid_t p_id;
     pid_t c_id;
     pid_t s_id;
     
-    createDemon(&p_id, &c_id, &s_id);
-    createFifo(FILENAME);
-    handleInputs();
+    char option;
+    char pathToFile[PATH_LEN] = "./articulos";
+    while ((option = getopt (argc, argv, "p:h")) != -1)
+        switch (option)
+        {
+            case 'h':
+                mostrarAyuda();
+                return 0;
+            case 'p':            
+                strcpy(pathToFile, optarg);
+                break;
+        }
+    fprintf(stdout, "Iniciando demonio para el archivo '%s'...\n", pathToFile);
+    // createDemon(&p_id, &c_id, &s_id);
+    // createFifos(FIFO_IN_FILENAME, FIFO_OUT_FILENAME, FIFO_PERMISSIONS);
+    // handleInputs(FIFO_IN_FILENAME, FIFO_OUT_FILENAME);
     return 0;
 }
 
-void createFifo(char* filename){
-    mkfifo(filename, FIFO_PERMISSIONS);
+void mostrarAyuda(){
+    printf("Ayuda\n");
+}
+
+void createFifos(char* pathFifoIn, char* pathFifoOut, mode_t permissions){
+    mkfifo(pathFifoIn, permissions);
+    mkfifo(pathFifoOut, permissions);
 }
 
 void createDemon(pid_t* p_id, pid_t* c_id, pid_t* s_id){
@@ -60,6 +86,7 @@ void createDemon(pid_t* p_id, pid_t* c_id, pid_t* s_id){
         exit(ON_FORK_ERROR);
     }
     if(*p_id > 0){
+        fprintf(stdout, "Proceso padre creado y finalizado exitosamente!\n");
         exit(TERMINATE_PARENT_PROCESS);
     }
 
@@ -79,37 +106,36 @@ void createDemon(pid_t* p_id, pid_t* c_id, pid_t* s_id){
     close(STDERR_FILENO);
 }
 
-void handleInputs(){
-    
+void handleInputs(char* pathFifoIn, char* pathFifoOut){
+    char* filtro;
+    int queryFD = open(pathFifoIn, O_RDWR);
+    int resultFD = open(pathFifoOut, O_WRONLY);
+    while(read(queryFD, filtro, MAX_FILTER_LENGTH)>0){
+        if(searchInFile(filtro, &resultFD) != 0)
+            break;
+    }
 }
 
-int fileHandler(){
+int searchInFile(char* filtro, int* fdWrite){
     FILE *fp = NULL;
     char line[STR_LEN];
     t_Articulo articulo;
-    int nLinea = 0;
-    char filtro[] = "PRODUCTO=SET HERMETICOS";
-    fp = fopen(FILENAME, OPEN_MODE);
 
+    // Dividir filtro en dos cadenas, antes y despues del '='
     char filterItem[MAX_HEADER_LEN];
     char filterValue[MAX_FILTER_VALUE_LEN];
     splitFilter(filtro, filterItem, filterValue);
-    if(!fp){
-        fprintf(stderr, "%s\n", ON_FILE_OPENING_ERROR_MSG);
-        return -1;
-    }
+
+    // Apertura del archivo de articulos
+    fp = fopen(FILENAME, OPEN_MODE);
+    if(!fp)
+        return ON_OPEN_FILE_ERROR;
     rewind(fp);
 
-
     while(fgets(line, STR_LEN, fp)){
-        nLinea++;
-        if(nLinea == 1){
-            mostrarEncabezados();
-            continue;
-        }
         populateArticulo(&articulo, line);
         if(cumpleFiltro(&articulo, filterItem, filterValue))
-            mostrarArticulo(&articulo);
+            mostrarArticulo(&articulo, fdWrite);
     }
     fclose(fp);
     return 0;
@@ -133,8 +159,10 @@ void populateArticulo(t_Articulo* pArticulo, char* line){
     sscanf(line, "%d", &pArticulo->item_id);
 }
 
-void mostrarArticulo(t_Articulo* pArticulo){
-    fprintf(stdout, "%d\t%s\t%s\t%s", pArticulo->item_id, pArticulo->articulo, pArticulo->producto, pArticulo->marca);
+void mostrarArticulo(t_Articulo* pArticulo, int* fdWrite){
+    char* result;
+    sprintf(result, "%d\t%s\t%s\t%s", pArticulo->item_id, pArticulo->articulo, pArticulo->producto, pArticulo->marca);
+    write(*fdWrite, result, STR_LEN);
 }
 
 void mostrarEncabezados(){
