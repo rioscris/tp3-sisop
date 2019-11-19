@@ -35,7 +35,6 @@ typedef struct
 
 void populateArticulo(t_Articulo*, char*);
 void mostrarArticulo(t_Articulo*, int*);
-void mostrarEncabezados();
 int cumpleFiltro(t_Articulo*, char*, char*);
 void splitFilter(char*, char*, char*);
 int searchInFile();
@@ -167,10 +166,6 @@ void mostrarArticulo(t_Articulo* pArticulo, int* fdWrite){
     char* result;
     sprintf(result, "%d\t%s\t%s\t%s", pArticulo->item_id, pArticulo->articulo, pArticulo->producto, pArticulo->marca);
     write(*fdWrite, result, STR_LEN);
-}
-
-void mostrarEncabezados(){
-    fprintf(stdout, "ITEM_ID\tARTICULO\tPRODUCTO\tMARCA\n");
 }
 
 void splitFilter(char* filter, char* filterItem, char* value){
