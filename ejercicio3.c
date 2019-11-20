@@ -25,6 +25,7 @@
 #define TERMINATE_PARENT_PROCESS 0
 #define ON_SESSION_ERROR 2
 #define ON_OPEN_FILE_ERROR -1
+#define STR_OUT_LEN 400
 typedef struct
 {
     int item_id;
@@ -193,7 +194,7 @@ void populateArticulo(t_Articulo* pArticulo, char* line){
 }
 
 void mostrarArticulo(t_Articulo* pArticulo, int* fdWrite){
-    char result[STR_LEN];
+    char result[STR_OUT_LEN];
     sprintf(result, "%d\t%s\t%s\t%s\n", pArticulo->item_id, pArticulo->articulo, pArticulo->producto, pArticulo->marca);
     write(*fdWrite, result, strlen(result));
 }
