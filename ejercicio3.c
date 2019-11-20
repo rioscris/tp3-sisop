@@ -35,7 +35,7 @@ typedef struct
 
 void populateArticulo(t_Articulo*, char*);
 void mostrarArticulo(t_Articulo*, int*);
-int cumpleFiltro(t_Articulo*, char*, char*);
+int cumpleFiltro(t_Articulo*, const char*, const char*);
 void splitFilter(char*, char*, char*);
 int searchInFile();
 void handleInputs(char*, char*, char*);
@@ -43,6 +43,8 @@ void createDemon(pid_t*, pid_t*, pid_t*);
 void createFifos(char*, char*, mode_t);
 void logInit();
 void mostrarAyuda();
+void logMsg(char*);
+void removeNewlineAtOffset(char*, int);
 
 int main(int argc, char** argv){
     pid_t p_id;
@@ -117,6 +119,12 @@ void logInit(){
 	fclose(fAux);
 }
 
+void logMsg(char* msg){
+	FILE* fpLog = fopen("/tmp/log", "a");
+	fwrite(msg, strlen(msg), 1, fpLog);
+	fclose(fpLog);
+}
+
 void handleInputs(char* pathFifoIn, char* pathFifoOut, char* pathToData){
     char filtro[MAX_FILTER_LENGTH];
     logInit();
@@ -141,7 +149,7 @@ int searchInFile(char* filtro, int* fdWrite, char* pathToData){
     char filterItem[MAX_HEADER_LEN];
     char filterValue[MAX_FILTER_VALUE_LEN];
     splitFilter(filtro, filterItem, filterValue);
-
+	
     // Apertura del archivo de articulos
     fp = fopen(pathToData, OPEN_MODE);
     if(!fp)
@@ -150,15 +158,24 @@ int searchInFile(char* filtro, int* fdWrite, char* pathToData){
 
     while(fgets(line, STR_LEN, fp)){
         populateArticulo(&articulo, line);
-        if(cumpleFiltro(&articulo, filterItem, filterValue))
-            mostrarArticulo(&articulo, fdWrite);
+        if(cumpleFiltro(&articulo, filterItem, filterValue)){
+ 		    mostrarArticulo(&articulo, fdWrite);
+	    }
     }
     fclose(fp);
     return 0;
 }
 
+void removeNewlineAtOffset(char* string, int offset){
+    char* newLine = strrchr(string, '\n') + offset;
+    if(newLine != NULL){
+        *newLine = '\0';
+    }
+}
+
 void populateArticulo(t_Articulo* pArticulo, char* line){
     char *pChar = NULL;
+    removeNewlineAtOffset(line, -1);
 
     pChar = strrchr(line, ';');
     strcpy(pArticulo->marca, pChar+1);
@@ -176,13 +193,15 @@ void populateArticulo(t_Articulo* pArticulo, char* line){
 }
 
 void mostrarArticulo(t_Articulo* pArticulo, int* fdWrite){
-    char* result;
-    sprintf(result, "%d\t%s\t%s\t%s", pArticulo->item_id, pArticulo->articulo, pArticulo->producto, pArticulo->marca);
+    char result[STR_LEN];
+    sprintf(result, "%d\t%s\t%s\t%s\n", pArticulo->item_id, pArticulo->articulo, pArticulo->producto, pArticulo->marca);
     write(*fdWrite, result, strlen(result));
 }
 
 void splitFilter(char* filter, char* filterItem, char* value){
     char* pChar = NULL;
+
+    removeNewlineAtOffset(filter, 0);
 
     pChar = strrchr(filter, '=');
     strcpy(value, pChar+1);
@@ -191,7 +210,7 @@ void splitFilter(char* filter, char* filterItem, char* value){
     strcpy(filterItem, filter);
 }
 
-int cumpleFiltro(t_Articulo* pArticulo, char* filterItem, char* filterValue){
+int cumpleFiltro(t_Articulo* pArticulo, const char* filterItem, const char* filterValue){
     return  (!strcmp(filterItem, "ITEM_ID") && atoi(filterValue) == pArticulo->item_id) ||
             (!strcmp(filterItem, "ARTICULO") && !strcmp(filterValue, pArticulo->articulo)) ||
             (!strcmp(filterItem, "PRODUCTO") && !strcmp(filterValue, pArticulo->producto)) ||
