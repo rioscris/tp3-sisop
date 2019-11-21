@@ -9,6 +9,7 @@
 
 #define PATH_LEN 150
 #define STR_LEN 300
+#define ITEM_ID_LEN 20
 #define ARTICULO_LEN 200
 #define PRODUCTO_LEN 80
 #define MARCA_LEN 80
@@ -28,7 +29,7 @@
 #define STR_OUT_LEN 400
 typedef struct
 {
-    int item_id;
+    char item_id[ITEM_ID_LEN];
     char articulo[ARTICULO_LEN];
     char producto[PRODUCTO_LEN];
     char marca[MARCA_LEN];
@@ -190,12 +191,13 @@ void populateArticulo(t_Articulo* pArticulo, char* line){
     strcpy(pArticulo->articulo, pChar+1);
     *pChar = '\0';
 
-    sscanf(line, "%d", &pArticulo->item_id);
+    strcpy(pArticulo->item_id, line);
+    *line = '\0';
 }
 
 void mostrarArticulo(t_Articulo* pArticulo, int* fdWrite){
     char result[STR_OUT_LEN];
-    sprintf(result, "%d\t%s\t%s\t%s\n", pArticulo->item_id, pArticulo->articulo, pArticulo->producto, pArticulo->marca);
+    sprintf(result, "%s\t%s\t%s\t%s\n", pArticulo->item_id, pArticulo->articulo, pArticulo->producto, pArticulo->marca);
     write(*fdWrite, result, strlen(result));
 }
 
@@ -212,7 +214,7 @@ void splitFilter(char* filter, char* filterItem, char* value){
 }
 
 int cumpleFiltro(t_Articulo* pArticulo, const char* filterItem, const char* filterValue){
-    return  (!strcmp(filterItem, "ITEM_ID") && atoi(filterValue) == pArticulo->item_id) ||
+    return  (!strcmp(filterItem, "ITEM_ID") && !strcmp(filterValue, pArticulo->item_id)) ||
             (!strcmp(filterItem, "ARTICULO") && !strcmp(filterValue, pArticulo->articulo)) ||
             (!strcmp(filterItem, "PRODUCTO") && !strcmp(filterValue, pArticulo->producto)) ||
             (!strcmp(filterItem, "MARCA") && !strcmp(filterValue, pArticulo->marca));
