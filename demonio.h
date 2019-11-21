@@ -1,6 +1,8 @@
+#include <sys/stat.h>
 #include <sys/types.h>
-#include <unwind.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <unwind.h>
 #include <unistd.h>
 #include <errno.h>
 
