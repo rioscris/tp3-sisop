@@ -1,18 +1,7 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <string.h>
-#include <errno.h>
-#include <fcntl.h>
+#include "ejercicio3.h"
 
 #define PATH_LEN 150
 #define STR_LEN 300
-#define ITEM_ID_LEN 20
-#define ARTICULO_LEN 200
-#define PRODUCTO_LEN 80
-#define MARCA_LEN 80
 #define DEFAULT_DATAFILE "articulos.txt"
 #define FIFO_IN_FILENAME "/tmp/articulosQueryFifo"
 #define FIFO_OUT_FILENAME "/tmp/articulosResultFifo"
@@ -22,18 +11,8 @@
 #define MAX_HEADER_LEN 20
 #define MAX_FILTER_VALUE_LEN 200
 #define FIFO_PERMISSIONS 0666
-#define ON_FORK_ERROR 1
-#define TERMINATE_PARENT_PROCESS 0
-#define ON_SESSION_ERROR 2
 #define ON_OPEN_FILE_ERROR -1
 #define STR_OUT_LEN 400
-typedef struct
-{
-    char item_id[ITEM_ID_LEN];
-    char articulo[ARTICULO_LEN];
-    char producto[PRODUCTO_LEN];
-    char marca[MARCA_LEN];
-}t_Articulo;
 
 void populateArticulo(t_Articulo*, char*);
 void mostrarArticulo(t_Articulo*, int*);
@@ -41,12 +20,6 @@ int cumpleFiltro(t_Articulo*, t_Articulo*, const char*, const char*);
 void splitFilter(char*, char*, char*);
 int searchInFile();
 void handleInputs(char*, char*, char*);
-void createDemon(pid_t*, pid_t*, pid_t*);
-void createFifos(char*, char*, mode_t);
-void logInit();
-void mostrarAyuda();
-void logMsg(char*);
-void removeNewlineAtOffset(char*, int);
 
 int main(int argc, char** argv){
     pid_t p_id;
@@ -73,58 +46,6 @@ int main(int argc, char** argv){
     createFifos(FIFO_IN_FILENAME, FIFO_OUT_FILENAME, FIFO_PERMISSIONS);
     handleInputs(FIFO_IN_FILENAME, FIFO_OUT_FILENAME, pathToFile);
     return 0;
-}
-
-void mostrarAyuda(){
-    printf("Ayuda\n");
-}
-
-void createFifos(char* pathFifoIn, char* pathFifoOut, mode_t permissions){
-    mkfifo(pathFifoIn, permissions);
-    mkfifo(pathFifoOut, permissions);
-}
-
-void createDemon(pid_t* p_id, pid_t* c_id, pid_t* s_id){
-    *p_id = fork();
-
-    if(*p_id < 0){
-        fprintf(stderr, "Error en creacion de proceso... Codigo de error: %d\n", errno);
-        exit(ON_FORK_ERROR);
-    }
-    if(*p_id > 0){
-        fprintf(stdout, "Proceso padre finalizado exitosamente!\n");
-        exit(TERMINATE_PARENT_PROCESS);
-    }
-
-    umask(0);
-
-    *c_id = getpid();
-    *s_id = setsid();
-    
-    if(*s_id < 0){
-        fprintf(stderr, "Error en creacion de sesion... Codigo de error: %d\n", errno);
-        exit(ON_SESSION_ERROR);
-    }
-
-    fprintf(stdout, "Proceso hijo creado exitosamente. PID: %d\n", getpid());
-
-    chdir("/");
-    close(STDIN_FILENO);
-    close(STDOUT_FILENO);
-    close(STDERR_FILENO);
-}
-
-void logInit(){
-	FILE* fAux = fopen("/tmp/initLog", "w");
-	char initLogMsg[] = "Successful init of Daemon...\n";
-        fwrite(initLogMsg, sizeof(initLogMsg), 1, fAux);
-	fclose(fAux);
-}
-
-void logMsg(char* msg){
-	FILE* fpLog = fopen("/tmp/log", "a");
-	fwrite(msg, strlen(msg), 1, fpLog);
-	fclose(fpLog);
 }
 
 void handleInputs(char* pathFifoIn, char* pathFifoOut, char* pathToData){
@@ -175,12 +96,7 @@ int searchInFile(char* filtro, int* fdWrite, char* pathToData){
     return 0;
 }
 
-void removeNewlineAtOffset(char* string, int offset){
-    char* newLine = strrchr(string, '\n') + offset;
-    if(newLine != NULL){
-        *newLine = '\0';
-    }
-}
+
 
 void populateArticulo(t_Articulo* pArticulo, char* line){
     char *pChar = NULL;
