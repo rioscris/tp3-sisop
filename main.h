@@ -7,9 +7,11 @@
 #include <errno.h>
 #include <fcntl.h>
 
-#include "tipos.h"
+// #include "tipos.h"
+// #include "archivos.h"
 #include "fifos.h"
 #include "log.h"
 #include "ayuda.h"
 #include "demonio.h"
 #include "stringExt.h"
+// #include "articulosFunc.h"
