@@ -37,7 +37,7 @@ typedef struct
 
 void populateArticulo(t_Articulo*, char*);
 void mostrarArticulo(t_Articulo*, int*);
-int cumpleFiltro(t_Articulo*, const char*, const char*);
+int cumpleFiltro(t_Articulo*, t_Articulo*, const char*, const char*);
 void splitFilter(char*, char*, char*);
 int searchInFile();
 void handleInputs(char*, char*, char*);
@@ -146,7 +146,8 @@ int searchInFile(char* filtro, int* fdWrite, char* pathToData){
     FILE *fp = NULL;
     char line[STR_LEN];
     t_Articulo articulo;
-
+    t_Articulo encabezados;
+    int esEncabezado = 1;
     // Dividir filtro en dos cadenas, antes y despues del '='
     char filterItem[MAX_HEADER_LEN];
     char filterValue[MAX_FILTER_VALUE_LEN];
@@ -159,10 +160,16 @@ int searchInFile(char* filtro, int* fdWrite, char* pathToData){
     rewind(fp);
 
     while(fgets(line, STR_LEN, fp)){
-        populateArticulo(&articulo, line);
-        if(cumpleFiltro(&articulo, filterItem, filterValue)){
- 		    mostrarArticulo(&articulo, fdWrite);
-	    }
+        if(esEncabezado){
+            populateArticulo(&encabezados, line);
+            esEncabezado = !esEncabezado;
+        }
+        else{
+            populateArticulo(&articulo, line);
+            if(cumpleFiltro(&articulo, &encabezados, filterItem, filterValue)){
+                mostrarArticulo(&articulo, fdWrite);
+            }
+        }
     }
     fclose(fp);
     return 0;
@@ -213,9 +220,9 @@ void splitFilter(char* filter, char* filterItem, char* value){
     strcpy(filterItem, filter);
 }
 
-int cumpleFiltro(t_Articulo* pArticulo, const char* filterItem, const char* filterValue){
-    return  (!strcmp(filterItem, "ITEM_ID") && !strcmp(filterValue, pArticulo->item_id)) ||
-            (!strcmp(filterItem, "ARTICULO") && !strcmp(filterValue, pArticulo->articulo)) ||
-            (!strcmp(filterItem, "PRODUCTO") && !strcmp(filterValue, pArticulo->producto)) ||
-            (!strcmp(filterItem, "MARCA") && !strcmp(filterValue, pArticulo->marca));
+int cumpleFiltro(t_Articulo* pArticulo, t_Articulo* encabezados, const char* filterItem, const char* filterValue){
+    return  (!strcmp(filterItem, encabezados->item_id) && !strcmp(filterValue, pArticulo->item_id)) ||
+            (!strcmp(filterItem, encabezados->articulo) && !strcmp(filterValue, pArticulo->articulo)) ||
+            (!strcmp(filterItem, encabezados->producto) && !strcmp(filterValue, pArticulo->producto)) ||
+            (!strcmp(filterItem, encabezados->marca) && !strcmp(filterValue, pArticulo->marca));
 }
