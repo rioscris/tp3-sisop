@@ -9,7 +9,7 @@
 
 // #include "tipos.h"
 // #include "archivos.h"
-#include "fifos.h"
+#include "ipc.h"
 #include "log.h"
 #include "ayuda.h"
 #include "demonio.h"
