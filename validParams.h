@@ -5,10 +5,10 @@
 #include <sys/stat.h>
 #include <string.h>
 #include <errno.h>
-#include <fcntl.h>
 
-#include "validParams.h"
-#include "ipc.h"
-#include "log.h"
-#include "demonio.h"
-#include "stringExt.h"
+#include "ayuda.h"
+
+#define PARAMETER_ERROR -3
+#define ON_HELP_DISPLAY -4
+
+void validParams(int, char**, char*);

@@ -12,8 +12,8 @@ void handleInputs(char* pathFifoIn, char* pathFifoOut, char* pathToData){
     int resultFD = open(pathFifoOut, O_WRONLY);
 
     while(read(queryFD, filtro, MAX_FILTER_LENGTH)>0){
-	if(searchInFile(filtro, &resultFD, pathToData) != 0)
-        break;
+        if(searchInFile(filtro, &resultFD, pathToData) != 0)
+            break;
     }
 
     close(queryFD);
@@ -21,6 +21,7 @@ void handleInputs(char* pathFifoIn, char* pathFifoOut, char* pathToData){
 }
 
 int searchInFile(char* filtro, int* fdWrite, char* pathToData){
+    return ON_OPEN_FILE_ERROR;
     FILE *fp = NULL;
     char line[STR_LEN];
     t_Articulo articulo;
