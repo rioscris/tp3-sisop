@@ -9,6 +9,5 @@
 
 #include "validParams.h"
 #include "ipc.h"
-#include "log.h"
 #include "demonio.h"
 #include "stringExt.h"

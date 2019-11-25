@@ -25,7 +25,7 @@ void createDemon(pid_t* p_id, pid_t* c_id, pid_t* s_id){
     fprintf(stdout, "Proceso hijo creado exitosamente. PID: %d\n", getpid());
 
     chdir("/");
-    // close(STDIN_FILENO);
-    // close(STDOUT_FILENO);
-    // close(STDERR_FILENO);
+    close(STDIN_FILENO);
+    close(STDOUT_FILENO);
+    close(STDERR_FILENO);
 }
