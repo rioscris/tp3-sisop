@@ -11,7 +11,7 @@ void logMessage(const char* message, const char* logger){
 }
 
 void initLog(char* pathname, const char* defaultPath){
-	char* initMsg = "-Inicio exitoso de demonio.\n";
+	char* initMsg = "-Inicio exitoso de demonio\n";
 	char* relativePath;
 	FILE* fpLog;
 

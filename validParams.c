@@ -1,6 +1,6 @@
 #include "validParams.h"
 
-void validParams(int argc, char** argv, char* pathToFile, char* fifoIn, char* fifoOut,char* log){
+void validParams(int argc, char** argv, char* pathToFile, char* fifoIn, char* fifoOut, char* log, const char* defaultLog){
     int index; 
     char option;
     int pFlag = 0;
@@ -15,7 +15,7 @@ void validParams(int argc, char** argv, char* pathToFile, char* fifoIn, char* fi
         switch (option)
         {
             case 'h':
-                mostrarAyuda();
+                mostrarAyuda(defaultLog);
                 exit(ON_HELP_DISPLAY);
             case 'p':
                 toggle(pFlag);

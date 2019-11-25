@@ -11,3 +11,7 @@
 #include "ipc.h"
 #include "demonio.h"
 #include "stringExt.h"
+
+#define PATH_LEN 150
+#define FIFO_PERMISSIONS 0666
+#define DEFAULT_LOGGER "./logger.txt"

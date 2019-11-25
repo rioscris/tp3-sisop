@@ -1,12 +1,5 @@
 #include "main.h"
 
-#define PATH_LEN 150
-#define DEFAULT_DATAFILE "articulos.txt"
-#define FIFO_IN_FILENAME "/tmp/articulosQueryFifo"
-#define FIFO_OUT_FILENAME "/tmp/articulosResultFifo"
-#define ON_FILE_OPENING_ERROR_MSG "Error en apertura de archivo"
-#define FIFO_PERMISSIONS 0666
-#define DEFAULT_LOGGER "./logger.txt"
 int main(int argc, char** argv){
     pid_t p_id;
     pid_t c_id;
@@ -17,7 +10,7 @@ int main(int argc, char** argv){
     char fifoOut[PATH_LEN];
     char logger[PATH_LEN] = "\0";
 
-    validParams(argc, argv, pathToFile, fifoIn, fifoOut, logger);
+    validParams(argc, argv, pathToFile, fifoIn, fifoOut, logger, DEFAULT_LOGGER);
     initLog(logger, DEFAULT_LOGGER);
 
     fprintf(stdout, "Iniciando creacion de demonio para consultas...\n");
