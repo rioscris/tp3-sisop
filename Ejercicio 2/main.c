@@ -13,19 +13,44 @@ Villca Luis - DNI 35.277.730
 
 void calcularThreads(const int threads, const int nLineas, int* nThreads, int* cargaPThread, int* cargaPProcess);
 
+FILE* filesrc;
+FILE* filedst;
+
+void *threadCalc(void* paramPar){
+    t_infoTh* auxPar = (t_infoTh*) paramPar;
+    char line[LINE_LEN];
+    t_par par;
+    int cargaPThread = auxPar->cargaPThread;
+    
+    int iCargaThread;
+    double resultado = 0;
+    for(iCargaThread = 0; iCargaThread < cargaPThread; iCargaThread++){
+        if(!fgets(line, sizeof(line), filesrc)){
+            break;
+        }
+        trozarCampos(&par, line);
+        resultado = par.primero + par.segundo;
+        printf("Resultado %lf\n", resultado);
+        fprintf(filedst, "%lf\n", resultado);
+    }
+    free(paramPar);
+}
+
 int main(int argc, char *argv[]) {
     char line[LINE_LEN], *aux;
-    FILE *filesrc;
-    FILE *filedst;
     char fileIn[PATH_LEN];
     char fileOut[PATH_LEN];
     double resultado;
-    t_par par;
+    t_infoTh* infoThread;
+    t_par* auxPar;
+    pthread_t thread_id;
     int threads = 0;
     int nLineas = 0;
     int nThreads = 0;
     int cargaPThread = 0;
     int cargaPProcess = 0;
+    int iThread;
+    int iCargaThread;
 
     validateParams(argc, argv, &threads, fileIn, fileOut);
     
@@ -51,13 +76,26 @@ int main(int argc, char *argv[]) {
 
     calcularThreads(threads, nLineas, &nThreads, &cargaPThread, &cargaPProcess);
 
-    // while(fgets(line, sizeof(line), filesrc)) {
-    //     resultado=0;
+    // Carga de trabajo a los threads
+    rewind(filesrc);
+    rewind(filedst);
+
+
+    for(iThread = 0; iThread < nThreads; iThread++){
+        infoThread = (t_infoTh *) malloc(sizeof(t_infoTh));
+        if(!infoThread){
+            fprintf(stderr, "Error en pedido de memoria dinamica.\n");
+            break;
+        }
+
+        // infoThread->filesrc = filesrc;
+        // infoThread->filedst = filedst;
+
+        infoThread->cargaPThread = cargaPThread;
         
-    //     trozarCampos(&par, line);
-    //     resultado = par.primero + par.segundo;
-    //     fprintf(filedst, "%lf\n", resultado);
-    // }
+        pthread_create(&thread_id, NULL, threadCalc, infoThread);
+        
+    }
 
     fclose(filesrc);
     fclose(filedst);

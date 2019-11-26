@@ -1,7 +1,7 @@
 all: ejercicio2 clean
 
 ejercicio2: main.h main.c validateParams.o archivos.o definiciones.h
-	gcc -g -o ejercicio2 main.c archivos.o validateParams.o
+	gcc -g -o ejercicio2 main.c archivos.o validateParams.o -lpthread
 
 validateParams.o: validateParams.c validateParams.h
 	gcc -g -o validateParams.o -c validateParams.c

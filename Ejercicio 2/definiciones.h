@@ -4,8 +4,13 @@
 #define INVALID_DATA -3
 #define PATH_LEN 300
 
-typedef struct
-{
+typedef struct{
     double primero;
     double segundo;
 }t_par;
+
+typedef struct{
+    FILE* filedst;
+    FILE* filesrc;
+    int cargaPThread;
+}t_infoTh;
