@@ -20,11 +20,11 @@ void validateParams(int argc, char** argv, int* threads, char* fileIn, char* fil
                 break;
             case 'i':
                 toggle(iFlag);
-                strcpy(fileOut, optarg);
+                strcpy(fileIn, optarg);
                 break;
             case 'o':
                 toggle(oFlag);
-                strcpy(fileIn, optarg);
+                strcpy(fileOut, optarg);
                 break;
             case 't':
                 toggle(tFlag);

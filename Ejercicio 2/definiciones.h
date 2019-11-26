@@ -2,6 +2,7 @@
 #define CON_MSJ 1
 #define ON_FILE_ERROR -2
 #define INVALID_DATA -3
+#define PATH_LEN 300
 
 typedef struct
 {

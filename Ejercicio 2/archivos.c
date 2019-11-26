@@ -10,12 +10,12 @@ int contarLineasEnArchivo(FILE* fp, int* nLineas) {
         if(!isValidPair(line))
             return INVALID_DATA;
     }
-
+    
     return *nLineas;
 }
 
 int isValidPair(char* line) {
-    return (!strchr(line, '\n') && strlen(line) > 1 && !strchr(line, ';'));
+    return (strchr(line, '\0') && strlen(line) > 1 && strchr(line, ','));
 }
 
 int abrirArchivo(FILE **fp,const char *nombre,const char *modo) {
