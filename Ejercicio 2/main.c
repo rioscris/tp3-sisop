@@ -26,6 +26,7 @@ void *threadCalc(void* paramPar){
     double resultado = 0;
     for(iCargaThread = 0; iCargaThread < cargaPThread; iCargaThread++){
         if(!fgets(line, sizeof(line), filesrc)){
+            free(paramPar);
             break;
         }
         trozarCampos(&par, line);
@@ -81,11 +82,11 @@ int main(int argc, char *argv[]) {
     rewind(filedst);
 
 
-    for(iThread = 0; iThread < nThreads; iThread++){
+    // for(iThread = 0; iThread < nThreads; iThread++){
         infoThread = (t_infoTh *) malloc(sizeof(t_infoTh));
         if(!infoThread){
             fprintf(stderr, "Error en pedido de memoria dinamica.\n");
-            break;
+            // break;
         }
 
         // infoThread->filesrc = filesrc;
@@ -94,8 +95,9 @@ int main(int argc, char *argv[]) {
         infoThread->cargaPThread = cargaPThread;
         
         pthread_create(&thread_id, NULL, threadCalc, infoThread);
+        pthread_join(thread_id, NULL);
         
-    }
+    // }
 
     fclose(filesrc);
     fclose(filedst);
