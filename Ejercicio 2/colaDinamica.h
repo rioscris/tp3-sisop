@@ -5,28 +5,45 @@
 #include <stdlib.h>
 #include <pthread.h>
 
-typedef struct
-{
+typedef struct{
     pthread_t thread_id;
-}tInfo;
+}tInfoThread;
 
-typedef struct sNodo
-{
-    tInfo info;
-    struct sNodo* sig;
-}tNodo;
+typedef struct{
+    double primero;
+    double segundo;
+}tInfoCalc;
 
-typedef struct
-{
-    tNodo *pri,
-          *ult;
-}tCola;
+typedef struct sNodoCalc{
+    tInfoCalc* info;
+    struct sNodoCalc* sig;
+}tNodoCalc;
 
+typedef struct sNodoThread{
+    tInfoThread* info;
+    struct sNodoThread* sig;
+}tNodoThread;
 
-void crearCola(tCola *p);
-int colaLlena(const tCola *p);
-int ponerEnCola(tCola *p, const tInfo *d);
-int colaVacia(const tCola *p);
-int sacarDeCola(tCola *p, tInfo *d);
+typedef struct{
+    tNodoCalc   *pri,
+                *ult;
+}tColaCalc;
+
+typedef struct{
+    tNodoThread *pri,
+                *ult;
+}tColaThread;
+
+void crearColaCalc(tColaCalc *p);
+int colaLlenaCalc(const tColaCalc *p);
+int ponerEnColaCalc(tColaCalc *p, tInfoCalc *d);
+int colaVaciaCalc(const tColaCalc *p);
+int sacarDeColaCalc(tColaCalc *p, tInfoCalc **d);
+
+void crearColaThread(tColaThread *p);
+int colaLlenaThread(const tColaThread *p);
+int ponerEnColaThread(tColaThread *p, tInfoThread *d);
+int colaVaciaThread(const tColaThread *p);
+int sacarDeColaThread(tColaThread *p, tInfoThread **d);
 
 #endif // COLADINAMICA_H_INCLUDED

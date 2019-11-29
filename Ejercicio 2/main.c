@@ -1,12 +1,12 @@
 /*
 Trabajo Practico Grupal line 3 - Ejercicio 2
-Segunda entrega
+Tercera entrega
 
 Integrantes:
-Nuñez Diego - DNI 36.159.969
 Rios Cristian - DNI 40.015.557
 Riveros Christian - DNI 37.932.808
 Villca Luis - DNI 35.277.730
+Nuñez Diego - DNI 36.159.969
 */
 
 #include "main.h"
@@ -16,25 +16,16 @@ void calcularThreads(const int threads, const int nLineas, int* nThreads, int* c
 FILE* filesrc;
 FILE* filedst;
 
-void *threadCalc(void* paramPar){
-    t_infoTh* auxPar = (t_infoTh*) paramPar;
-    char line[LINE_LEN];
-    t_par par;
-    int cargaPThread = auxPar->cargaPThread;
-    
-    int iCargaThread;
-    double resultado = 0;
-    for(iCargaThread = 0; iCargaThread < cargaPThread; iCargaThread++){
-        if(!fgets(line, sizeof(line), filesrc)){
-            free(paramPar);
-            break;
-        }
-        trozarCampos(&par, line);
-        resultado = par.primero + par.segundo;
-        printf("Resultado %lf\n", resultado);
-        fprintf(filedst, "%lf\n", resultado);
-    }
-    free(paramPar);
+void *threadCalc(void* param){
+    printf("Hello from thread!\n");
+    tColaCalc* pColaCalc = (tColaCalc*) param;
+    tInfoCalc* pinfoCalc = (tInfoCalc*) malloc(sizeof(tInfoCalc));
+    pinfoCalc->primero = 1.0;
+    pinfoCalc->segundo = 5.0;
+    ponerEnColaCalc(pColaCalc, pinfoCalc);
+    // sacarDeColaCalc(pColaCalc, pinfoCalc);
+    // printf("Valores almacenados: %f %f\n", pinfoCalc->primero, pinfoCalc->segundo);
+    pthread_exit((void*)pColaCalc);
 }
 
 int main(int argc, char *argv[]) {
@@ -42,9 +33,6 @@ int main(int argc, char *argv[]) {
     char fileIn[PATH_LEN];
     char fileOut[PATH_LEN];
     double resultado;
-    t_infoTh* infoThread;
-    t_par* auxPar;
-    pthread_t thread_id;
     int threads = 0;
     int nLineas = 0;
     int nThreads = 0;
@@ -77,27 +65,45 @@ int main(int argc, char *argv[]) {
 
     calcularThreads(threads, nLineas, &nThreads, &cargaPThread, &cargaPProcess);
 
-    // Carga de trabajo a los threads
     rewind(filesrc);
     rewind(filedst);
 
+    pthread_t thread_id;
+    tColaThread colaThreads;
+    tColaCalc* auxColaCalc;
+    tInfoCalc* auxInfoCalc;
+    tInfoThread* auxInfoThread;
+    crearColaThread(&colaThreads);
 
-    // for(iThread = 0; iThread < nThreads; iThread++){
-        infoThread = (t_infoTh *) malloc(sizeof(t_infoTh));
-        if(!infoThread){
-            fprintf(stderr, "Error en pedido de memoria dinamica.\n");
-            // break;
-        }
-
-        // infoThread->filesrc = filesrc;
-        // infoThread->filedst = filedst;
-
-        infoThread->cargaPThread = cargaPThread;
+    // int var = 1;
+    // int *auxVar = &var;
+    // pthread_create(&thread_id, NULL, threadCalc, auxVar);
+    // pthread_join(thread_id, (void**)&(auxVar));
+    // printf("Recibido desde el thread %d\n", var);
+    
+    for (int i = 0; i < nThreads; i++)
+    {
+        auxColaCalc = (tColaCalc*) malloc(sizeof(tColaCalc));
+        crearColaCalc(auxColaCalc);
         
-        pthread_create(&thread_id, NULL, threadCalc, infoThread);
-        pthread_join(thread_id, NULL);
-        
-    // }
+        auxInfoThread = (tInfoThread*) malloc(sizeof(tInfoThread));
+        pthread_create(&(auxInfoThread->thread_id), NULL, threadCalc, auxColaCalc);
+        ponerEnColaThread(&colaThreads, auxInfoThread);
+    }
+
+    for (int i = 0; i < nThreads; i++)
+    {
+        sacarDeColaThread(&colaThreads, &auxInfoThread);
+        pthread_join(auxInfoThread->thread_id, (void**)&(auxColaCalc));
+        sacarDeColaCalc(auxColaCalc, &auxInfoCalc);
+        printf("Thread n# %d retorno cola con primer items: %f y %f\n", i, auxInfoCalc->primero, auxInfoCalc->segundo);
+        free(auxInfoCalc);
+        free(auxColaCalc);
+        printf("puntero vale %p\n", auxInfoThread);
+        free(auxInfoThread);
+    }
+
+    // Carga de trabajo a los threads
 
     fclose(filesrc);
     fclose(filedst);

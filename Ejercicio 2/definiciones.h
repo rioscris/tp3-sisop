@@ -8,9 +8,3 @@ typedef struct{
     double primero;
     double segundo;
 }t_par;
-
-typedef struct{
-    FILE* filedst;
-    FILE* filesrc;
-    int cargaPThread;
-}t_infoTh;
