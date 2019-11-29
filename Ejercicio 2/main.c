@@ -45,6 +45,7 @@ int main(int argc, char *argv[]) {
     int cargaPProcess = 0;
     int iThread;
     int iCargaThread;
+    t_par auxPar;
 
     validateParams(argc, argv, &threads, fileIn, fileOut);
     
@@ -80,12 +81,6 @@ int main(int argc, char *argv[]) {
     tInfoThread* auxInfoThread;
     crearColaThread(&colaThreads);
 
-    // int var = 1;
-    // int *auxVar = &var;
-    // pthread_create(&thread_id, NULL, threadCalc, auxVar);
-    // pthread_join(thread_id, (void**)&(auxVar));
-    // printf("Recibido desde el thread %d\n", var);
-    
     for (int i = 0; i < nThreads; i++)
     {
         auxColaCalc = (tColaCalc*) malloc(sizeof(tColaCalc));
@@ -96,8 +91,18 @@ int main(int argc, char *argv[]) {
         for (int j = 0; j < cargaPThread; j++)
         {
             auxInfoCalc = (tInfoCalc*) malloc(sizeof(tInfoCalc));
-            auxInfoCalc->primero = 1.0;
-            auxInfoCalc->segundo = 2.0;
+            
+            if(!fgets(line, sizeof(line), filesrc)){
+                fprintf(stderr, "Error durante la carga de threads\n");
+                fprintf(stderr, "Se ha llegado al fin de archivo antes de lo esperado\n");
+                fclose(filesrc);
+                fclose(filedst);
+                return -1;
+            }
+            trozarCampos(&auxPar, line);
+            auxInfoCalc->primero = auxPar.primero;
+            auxInfoCalc->segundo = auxPar.segundo;
+
             ponerEnColaCalc(auxColaCalc, auxInfoCalc);
         }
 
@@ -114,12 +119,12 @@ int main(int argc, char *argv[]) {
         for (int j = 0; j < cargaPThread; j++)
         {
             sacarDeColaCalc(auxColaCalc, &auxInfoCalc);
-            printf("Recibido del thread n# %d el resultado %f\n", i, auxInfoCalc->resultado);
+            // printf("Recibido del thread n# %d el resultado %f\n", i, auxInfoCalc->resultado);
+            fprintf(filedst, "%f\n", auxInfoCalc->resultado);
             free(auxInfoCalc);
         }
 
         free(auxColaCalc);
-        printf("puntero vale %p\n", auxInfoThread);
         free(auxInfoThread);
     }
 
