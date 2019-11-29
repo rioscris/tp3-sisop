@@ -22,7 +22,6 @@ void calcular(tInfoCalc* pInfoCalc){
 }
 
 void *threadCalc(void* param){
-    printf("Hello from thread!\n");
     tColaCalc* pColaCalc = (tColaCalc*) param;
     tInfoCalc* pInfoCalc = NULL;
     for (int i = 0; i < cargaPThread; i++)
@@ -119,7 +118,7 @@ int main(int argc, char *argv[]) {
         for (int j = 0; j < cargaPThread; j++)
         {
             sacarDeColaCalc(auxColaCalc, &auxInfoCalc);
-            // printf("Recibido del thread n# %d el resultado %f\n", i, auxInfoCalc->resultado);
+            printf("Recibido del thread n# %d el resultado %f\n", i, auxInfoCalc->resultado);
             fprintf(filedst, "%f\n", auxInfoCalc->resultado);
             free(auxInfoCalc);
         }
@@ -136,16 +135,25 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
-void calcularThreads(const int threads, const int nLineas, int* nThreads, int* cargaPThread, int* cargaPProcess){
-    *nThreads = (nLineas > threads && threads != 0) ? threads % nLineas : 0;
+void calcularThreads(const int threads, const int lineas, int* nThreads, int* cargaPThread, int* cargaPProcess){
+    printf("Cantidad de lineas en archivo %d\n", lineas);
+    
+    // *nThreads = (nLineas > threads && threads != 0) ? threads % nLineas : 0;
+    *nThreads = (threads > 0 && lineas >= threads)? threads : 0;
+    // if(threads == 0)
+    //     *nThreads = 0;
+    // else if(lineas >= threads){
+    //     *nThreads = threads;
+    // }
 
     printf("Numero de threads necesitados: %d\n", *nThreads);
     if(*nThreads != 0){
-        *cargaPThread = nLineas / *nThreads;
+        // *cargaPThread = nLineas / *nThreads;
+        *cargaPThread = lineas / threads;
     }
     printf("Carga de cuentas por thread: %d\n", *cargaPThread);
-    if(*cargaPThread * *nThreads < nLineas){
-        *cargaPProcess = nLineas - *cargaPThread * *nThreads;
+    if(*cargaPThread * *nThreads < lineas){
+        *cargaPProcess = lineas - *cargaPThread * *nThreads;
         printf("Cuentas restantes a realizar por el proceso: %d\n", *cargaPProcess);
     }
 }
