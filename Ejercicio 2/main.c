@@ -15,16 +15,22 @@ void calcularThreads(const int threads, const int nLineas, int* nThreads, int* c
 
 FILE* filesrc;
 FILE* filedst;
+int cargaPThread = 0;    
+
+void calcular(tInfoCalc* pInfoCalc){
+    pInfoCalc->resultado = pInfoCalc->primero + pInfoCalc->segundo;
+}
 
 void *threadCalc(void* param){
     printf("Hello from thread!\n");
     tColaCalc* pColaCalc = (tColaCalc*) param;
-    tInfoCalc* pinfoCalc = (tInfoCalc*) malloc(sizeof(tInfoCalc));
-    pinfoCalc->primero = 1.0;
-    pinfoCalc->segundo = 5.0;
-    ponerEnColaCalc(pColaCalc, pinfoCalc);
-    // sacarDeColaCalc(pColaCalc, pinfoCalc);
-    // printf("Valores almacenados: %f %f\n", pinfoCalc->primero, pinfoCalc->segundo);
+    tInfoCalc* pInfoCalc = NULL;
+    for (int i = 0; i < cargaPThread; i++)
+    {
+        sacarDeColaCalc(pColaCalc, &pInfoCalc);
+        calcular(pInfoCalc);
+        ponerEnColaCalc(pColaCalc, pInfoCalc);
+    }
     pthread_exit((void*)pColaCalc);
 }
 
@@ -36,7 +42,6 @@ int main(int argc, char *argv[]) {
     int threads = 0;
     int nLineas = 0;
     int nThreads = 0;
-    int cargaPThread = 0;
     int cargaPProcess = 0;
     int iThread;
     int iCargaThread;
@@ -85,9 +90,19 @@ int main(int argc, char *argv[]) {
     {
         auxColaCalc = (tColaCalc*) malloc(sizeof(tColaCalc));
         crearColaCalc(auxColaCalc);
-        
+
         auxInfoThread = (tInfoThread*) malloc(sizeof(tInfoThread));
+        
+        for (int j = 0; j < cargaPThread; j++)
+        {
+            auxInfoCalc = (tInfoCalc*) malloc(sizeof(tInfoCalc));
+            auxInfoCalc->primero = 1.0;
+            auxInfoCalc->segundo = 2.0;
+            ponerEnColaCalc(auxColaCalc, auxInfoCalc);
+        }
+
         pthread_create(&(auxInfoThread->thread_id), NULL, threadCalc, auxColaCalc);
+
         ponerEnColaThread(&colaThreads, auxInfoThread);
     }
 
@@ -95,9 +110,14 @@ int main(int argc, char *argv[]) {
     {
         sacarDeColaThread(&colaThreads, &auxInfoThread);
         pthread_join(auxInfoThread->thread_id, (void**)&(auxColaCalc));
-        sacarDeColaCalc(auxColaCalc, &auxInfoCalc);
-        printf("Thread n# %d retorno cola con primer items: %f y %f\n", i, auxInfoCalc->primero, auxInfoCalc->segundo);
-        free(auxInfoCalc);
+
+        for (int j = 0; j < cargaPThread; j++)
+        {
+            sacarDeColaCalc(auxColaCalc, &auxInfoCalc);
+            printf("Recibido del thread n# %d el resultado %f\n", i, auxInfoCalc->resultado);
+            free(auxInfoCalc);
+        }
+
         free(auxColaCalc);
         printf("puntero vale %p\n", auxInfoThread);
         free(auxInfoThread);

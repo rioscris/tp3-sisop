@@ -12,6 +12,7 @@ typedef struct{
 typedef struct{
     double primero;
     double segundo;
+    double resultado;
 }tInfoCalc;
 
 typedef struct sNodoCalc{
