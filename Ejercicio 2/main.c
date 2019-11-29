@@ -80,6 +80,8 @@ int main(int argc, char *argv[]) {
     tInfoThread* auxInfoThread;
     crearColaThread(&colaThreads);
 
+    tInfoCalc auxInfoCalcProcess;
+
     for (int i = 0; i < nThreads; i++)
     {
         auxColaCalc = (tColaCalc*) malloc(sizeof(tColaCalc));
@@ -118,7 +120,7 @@ int main(int argc, char *argv[]) {
         for (int j = 0; j < cargaPThread; j++)
         {
             sacarDeColaCalc(auxColaCalc, &auxInfoCalc);
-            printf("Recibido del thread n# %d el resultado %f\n", i, auxInfoCalc->resultado);
+            printf("Recibido del thread n# %d el resultado %f\n", i+1, auxInfoCalc->resultado);
             fprintf(filedst, "%f\n", auxInfoCalc->resultado);
             free(auxInfoCalc);
         }
@@ -127,8 +129,25 @@ int main(int argc, char *argv[]) {
         free(auxInfoThread);
     }
 
-    // Carga de trabajo a los threads
 
+    // Calculos restantes para el proceso
+    for (int i = 0; i < cargaPProcess; i++)
+    {
+        if(!fgets(line, sizeof(line), filesrc)){
+            fprintf(stderr, "Error durante los calculos restantes en el proceso\n");
+            fprintf(stderr, "Se ha llegado al fin de archivo antes de lo esperado\n");
+            fclose(filesrc);
+            fclose(filedst);
+            return -1;
+        }
+        trozarCampos(&auxPar, line);
+        auxInfoCalcProcess.primero = auxPar.primero;
+        auxInfoCalcProcess.segundo = auxPar.segundo;
+        calcular(&auxInfoCalcProcess);
+        printf("Desde el proceso, escribiendo el resultado %f\n", auxInfoCalcProcess.resultado);
+        fprintf(filedst, "%f\n", auxInfoCalcProcess.resultado);
+    }
+    
     fclose(filesrc);
     fclose(filedst);
 
@@ -138,7 +157,6 @@ int main(int argc, char *argv[]) {
 void calcularThreads(const int threads, const int lineas, int* nThreads, int* cargaPThread, int* cargaPProcess){
     printf("Cantidad de lineas en archivo %d\n", lineas);
     
-    // *nThreads = (nLineas > threads && threads != 0) ? threads % nLineas : 0;
     *nThreads = (threads > 0 && lineas >= threads)? threads : 0;
     // if(threads == 0)
     //     *nThreads = 0;
@@ -148,7 +166,6 @@ void calcularThreads(const int threads, const int lineas, int* nThreads, int* ca
 
     printf("Numero de threads necesitados: %d\n", *nThreads);
     if(*nThreads != 0){
-        // *cargaPThread = nLineas / *nThreads;
         *cargaPThread = lineas / threads;
     }
     printf("Carga de cuentas por thread: %d\n", *cargaPThread);
