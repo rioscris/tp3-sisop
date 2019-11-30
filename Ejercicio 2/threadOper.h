@@ -3,8 +3,9 @@
 #include "colaDinamica.h"
 #include "archivos.h"
 #include "operations.h"
+// #include "global.h"
 
-int cargaPThread = 0;
+extern int cargaPThread;
 
 void calcularThreads(const int threads, const int nLineas, int* nThreads, int* cargaPThread, int* cargaPProcess);
 int cargaEnThreads(FILE* filesrc, tColaThread* colaThreads, const int nThreads, const int cargaPThread);

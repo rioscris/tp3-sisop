@@ -8,7 +8,10 @@
 #define REMAINING_CALC_ERROR -5
 #define OP_SUCESS 1
 
+#ifndef T_PAR_TYPE
+#define T_PAR_TYPE
 typedef struct{
     double primero;
     double segundo;
 }t_par;
+#endif
