@@ -5,5 +5,6 @@
 #include <unistd.h>
 
 #include "validateParams.h"
-#include "archivos.h"
-#include "colaDinamica.h"
+// #include "colaDinamica.h"
+#include "processOper.h"
+extern int cargaPThread;
